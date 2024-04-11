@@ -1,11 +1,11 @@
 /*
-	heap
-	This question requires you to implement a binary heap function
+    heap
+    This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
+use std::mem::swap;
 
 pub struct Heap<T>
 where
@@ -38,6 +38,16 @@ where
 
     pub fn add(&mut self, value: T) {
         //TODO
+        self.items.push(value);
+        self.count = self.count + 1;
+        // percolate up
+        let mut idx = self.count;
+        // println!("size {}, idx {}", self.items.len(), idx);
+        while idx > 1 && (self.comparator)(&self.items[idx], &self.items[self.parent_idx(idx)]) {
+            let parent_idx = self.parent_idx(idx);
+            self.items.swap(idx, parent_idx);
+            idx = self.parent_idx(idx);
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -58,7 +68,7 @@ where
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
         //TODO
-		0
+        0
     }
 }
 
@@ -85,7 +95,37 @@ where
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+        if self.count == 0 {
+            return None;
+        }
+        let value = self.items.swap_remove(1);
+        // return Some(value);
+
+        let mut idx = 1;
+        // self.items.swap(idx, self.count);
+        self.count = self.count - 1;
+
+        while idx <= self.count {
+            let left_child_idx = self.left_child_idx(idx);
+            let right_child_idx = self.right_child_idx(idx);
+            let mut next_idx = idx;
+            if left_child_idx <= self.count
+                && (self.comparator)(&self.items[left_child_idx], &self.items[next_idx])
+            {
+                next_idx = left_child_idx;
+            }
+            if right_child_idx <= self.count
+                && (self.comparator)(&self.items[right_child_idx], &self.items[next_idx])
+            {
+                next_idx = right_child_idx;
+            }
+            if next_idx != idx {
+                self.items.swap(idx, next_idx);
+            } else {
+                break;
+            }
+        }
+        Some(value)
     }
 }
 
@@ -120,6 +160,9 @@ mod tests {
     fn test_empty_heap() {
         let mut heap = MaxHeap::new::<i32>();
         assert_eq!(heap.next(), None);
+        heap.add(10);
+        assert_eq!(heap.len(), 1);
+        assert_eq!(heap.next(), Some(10));
     }
 
     #[test]
